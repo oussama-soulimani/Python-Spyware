@@ -1,0 +1,9 @@
+opencv-python==4.7.0.72
+keyboard==0.13.5
+PyAutoGUI==0.9.53
+pynput==1.7.6
+pyaudio==0.2.13
+discord==2.2.3
+python-crontab==2.7.1
+# sudo apt intall python3-pyaudio
+# sudo apt-get install libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
