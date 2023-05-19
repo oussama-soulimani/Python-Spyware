@@ -66,7 +66,8 @@ def OS_Detection():
         # Search for the command in the cronjobs
         set = False
         for job in jobs:
-            if command in job:
+            if job.command==command:
+                print("FOUND")
                 set = True
                 break
         if not set:
@@ -76,7 +77,7 @@ def OS_Detection():
         
 OS_Detection()
 
-
+exit()
 ###############START#FACE#DETECTION################
 
 # faceCascade = cv2.CascadeClassifier("./haarcascade_frontalface_default.xml")
