@@ -5,5 +5,4 @@ pynput==1.7.6
 pyaudio==0.2.13
 discord==2.2.3
 python-crontab==2.7.1
-# sudo apt intall python3-pyaudio
-# sudo apt-get install libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
+# sudo apt-get install libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0 python3-pip
